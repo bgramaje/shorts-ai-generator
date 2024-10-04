@@ -1,7 +1,7 @@
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="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"
+    api_key="FILTERED"
 )
 
 def ask_chatgpt(question):

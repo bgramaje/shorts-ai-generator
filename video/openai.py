@@ -1,7 +1,8 @@
 from openai import OpenAI
+from utils import settings
 
 client = OpenAI(
-    api_key="FILTERED"
+    api_key=settings.config["settings"]["openai"].get("api_key", None)
 )
 
 def ask_chatgpt(question):

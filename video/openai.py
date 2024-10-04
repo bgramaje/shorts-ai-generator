@@ -1,13 +1,14 @@
 from openai import OpenAI
 from utils import settings
 
-client = OpenAI(
-    api_key=settings.config["settings"]["openai"].get("api_key", None)
-)
 
 def ask_chatgpt(question):
     """Function to ask ChatGPT a question and return the response."""
     
+    client = OpenAI(
+        api_key=settings.config["settings"]["openai"].get("api_key", None)
+    )
+
     response = client.chat.completions.create(
         model="gpt-4o",  # You can also use "gpt-4" if you have access to it
         messages=[

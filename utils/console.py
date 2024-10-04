@@ -9,10 +9,10 @@ from rich.text import Text
 
 console = Console()
 
-def print_markdown(text) -> None:
+def print_markdown(text, padding=2) -> None:
     """Prints a rich info message. Support Markdown syntax."""
 
-    md = Padding(Markdown(text), 2)
+    md = Padding(Markdown(text), padding)
     console.print(md)
 
 

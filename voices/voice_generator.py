@@ -27,6 +27,6 @@ def save_text_to_mp3(obj) -> Tuple[int, int]:
         return
     # create the text-2-speech engine
     engine = TikTok(identifier=obj["id"])
-    # engine.run(text=obj["text"])
-    return engine.run(text=obj["text"])
+    [total_duration, number_of_clips] =  engine.run(text=obj["text"])
+    return [total_duration, number_of_clips]
 

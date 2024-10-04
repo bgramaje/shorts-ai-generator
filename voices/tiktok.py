@@ -125,9 +125,9 @@ class TikTok:
         print_step(f"Generating voices for video '{self._identifier}'")
         print_substep(f"Audios will be stored in [green]{self.path}")
 
-        total_duration = self.get_voices(voice=voice, text=text)
+        [total_duration, number_of_clips] = self.get_voices(voice=voice, text=text)
         print_substep(f"Total duration of all audio chunks: {total_duration} seconds")
-        return total_duration  # Return the total duration
+        return [total_duration, number_of_clips]  # Return the total duration
 
     def get_voices(self, text: str, voice: Optional[str] = None, output_filename: str = "output") -> float:
         """Downloads MP3 audio files for each chunk of text, saves them, and calculates total duration."""
@@ -136,7 +136,6 @@ class TikTok:
         print_substep(f"Splitted text-to-speech content into {len(text_chunks)} chunks")
 
         total_duration = 0  # Initialize total duration
-
         for i, chunk in enumerate(text_chunks):
             params = {"text": chunk}
             if voice is not None:
@@ -159,10 +158,11 @@ class TikTok:
                 chunk_audio = AudioSegment.from_mp3(chunk_filename)
                 chunk_duration = chunk_audio.duration_seconds
                 total_duration += chunk_duration
+                del chunk_audio
             else:
                 print_substep(f"Failed to download chunk {i + 1}. Status code: {response.status_code}")
 
-        return total_duration  # Return total duration of all chunks
+        return [total_duration, len(text_chunks)]  # Return total duration of all chunks
 
     @staticmethod
     def random_voice() -> str:

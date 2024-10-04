@@ -20,6 +20,8 @@ from video.video_background import (
     download_background_video,
     get_background_config,
 )
+from video.video_creator import make_final_video
+
 __VERSION__ = "3.3.0"
 
 print(
@@ -28,12 +30,15 @@ print(
 ██║   ██║██║██╔══██╗██╔════╝██╔═══██╗    ████╗ ████║██╔══██╗██║ ██╔╝██╔════╝██╔══██╗
 ██║   ██║██║██║  ██║█████╗  ██║   ██║    ██╔████╔██║███████║█████╔╝ █████╗  ██████╔╝
 ╚██╗ ██╔╝██║██║  ██║██╔══╝  ██║   ██║    ██║╚██╔╝██║██╔══██║██╔═██╗ ██╔══╝  ██╔══██╗
-╚████╔╝ ██║██████╔╝███████╗╚██████╔╝    ██║ ╚═╝ ██║██║  ██║██║  ██╗███████╗██║  ██║
-╚═══╝  ╚═╝╚═════╝ ╚══════╝ ╚═════╝     ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+ ╚████╔╝ ██║██████╔╝███████╗╚██████╔╝    ██║ ╚═╝ ██║██║  ██║██║  ██╗███████╗██║  ██║
+  ╚═══╝  ╚═╝╚═════╝ ╚══════╝ ╚═════╝     ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
 """
 )
+print_markdown("## shorts-ai-generator", padding=1)
+
 print_markdown(
     "### Thanks for using this tool! Feel free to contribute to this project on GitHub! If you have any questions, feel free to join my Discord server or submit a GitHub issue. You can find solutions to many common problems in the documentation: https://reddit-video-maker-bot.netlify.app/"
+, padding=1
 )
 
 if __name__ == "__main__":
@@ -58,7 +63,7 @@ if __name__ == "__main__":
         "text": response
     }
     
-    duration = save_text_to_mp3(prueba)
+    [total_duration, number_of_clips] = save_text_to_mp3(prueba)
 
     bg_config = {
         "video": get_background_config("video"),
@@ -67,7 +72,9 @@ if __name__ == "__main__":
 
     download_background_video(bg_config["video"])
     download_background_audio(bg_config["audio"])
-    background = chop_background(bg_config, duration, prueba)
-    print(background)
+    background = chop_background(bg_config, total_duration, prueba)
+
+    make_final_video(obj=prueba, length=total_duration, number_of_clips=number_of_clips)
+
 
     

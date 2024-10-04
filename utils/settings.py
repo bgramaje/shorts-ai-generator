@@ -151,10 +151,9 @@ Creating it now."""
 
     console.print(
         """\
-[blue bold]
-# Checking TOML configuration #
-If you see any prompts, that means that you have unset/incorrectly set variables, please input the correct values.\
-"""
+            [blue bold]
+            # Checking TOML configuration #
+            """
     )
     crawl(template, check_vars)
     with open(config_file, "w") as f:

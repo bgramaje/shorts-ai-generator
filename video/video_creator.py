@@ -90,6 +90,7 @@ def merge_background_audio(audio: ffmpeg, reddit_id: str):
         audio (ffmpeg): The TTS final audio but without background.
         reddit_id (str): The ID of subreddit
     """
+    
     background_audio_volume = settings.config["settings"]["background"]["background_audio_volume"]
     if background_audio_volume == 0:
         return audio  # Return the original audio
@@ -121,16 +122,22 @@ def make_final_video(
 
     audio_clips = list()
     audio_clips = [
-        ffmpeg.input(f"assets/temp/{id}/mp3/postaudio-{i}.mp3")
-        for i in track(range(number_of_clips + 1), "Collecting the audio files...")
+        ffmpeg.input(f"assets/temp/{id}/mp3/output_chunk_{i+1}.mp3")
+        for i in track(range(number_of_clips), "Collecting the audio files...")
     ]
-    audio_clips.insert(0, ffmpeg.input(f"assets/temp/{id}/mp3/title.mp3"))
     audio_concat = ffmpeg.concat(*audio_clips, a=1, v=0)
     
-    ffmpeg.output(
-        audio_concat, f"assets/temp/{id}/audio.mp3", **{"b:a": "192k"}
-    ).overwrite_output().run(quiet=True)
+    # ffmpeg.output(
+    #     audio_concat, f"assets/temp/{id}/audio.mp3", **{"b:a": "192k"}
+    # ).overwrite_output().run(quiet=True)
 
+    try:
+        ffmpeg.output(
+            audio_concat, f"assets/temp/{id}/audio.mp3", **{"b:a": "192k"}
+        ).overwrite_output().run(quiet=False)
+    except ffmpeg.Error as e:
+        print(e)  # To print the error details
+    
     console.log(f"[bold green] Video Will Be: {length} Seconds Long")
 
     screenshot_width = int((W * 45) // 100)

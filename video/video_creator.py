@@ -17,6 +17,15 @@ from utils.console import (
     print_substep
 )
 
+from text.text_captions import (
+    transcribe_audio,
+    generate_captions
+)
+from utils.thread_return import (
+    ThreadWithReturnValue
+)
+import threading
+
 console = Console()
 
 class ProgressFfmpeg(threading.Thread):
@@ -84,7 +93,7 @@ def prepare_background(id: str, W: int, H: int) -> str:
         exit(1)
     return output_path
 
-def merge_background_audio(audio: ffmpeg, reddit_id: str):
+def merge_background_audio(audio: ffmpeg, id: str):
     """Gather an audio and merge with assets/backgrounds/background.mp3
     Args:
         audio (ffmpeg): The TTS final audio but without background.
@@ -96,61 +105,30 @@ def merge_background_audio(audio: ffmpeg, reddit_id: str):
         return audio  # Return the original audio
     else:
         # sets volume to config
-        bg_audio = ffmpeg.input(f"assets/temp/{reddit_id}/background.mp3").filter(
+        bg_audio = ffmpeg.input(f"assets/temp/{id}/background.mp3").filter(
             "volume",
             background_audio_volume,
         )
         # Merges audio and background_audio
         merged_audio = ffmpeg.filter([audio, bg_audio], "amix", duration="longest")
-        return merged_audio  # Return merged audio
-
-
-def make_final_video(
-    obj,   
-    number_of_clips: int,
-    length: int
-):
-    # settings values
-    W: Final[int] = int(settings.config["settings"]["resolution_w"])
-    H: Final[int] = int(settings.config["settings"]["resolution_h"])
-    
-    opacity = settings.config["settings"]["opacity"]
-    id = obj["id"]
-
-    print_step("Creating the final video 🎥")
-    background_clip = ffmpeg.input(prepare_background(id, W=W, H=H))
-
-    audio_clips = list()
-    audio_clips = [
-        ffmpeg.input(f"assets/temp/{id}/mp3/output_chunk_{i+1}.mp3")
-        for i in track(range(number_of_clips), "Collecting the audio files...")
-    ]
-    audio_concat = ffmpeg.concat(*audio_clips, a=1, v=0)
-    
-    # ffmpeg.output(
-    #     audio_concat, f"assets/temp/{id}/audio.mp3", **{"b:a": "192k"}
-    # ).overwrite_output().run(quiet=True)
-
-    try:
+        merged_audio_path = f"assets/temp/{id}/merged-audio.mp3"
         ffmpeg.output(
-            audio_concat, f"assets/temp/{id}/audio.mp3", **{"b:a": "192k"}
-        ).overwrite_output().run(quiet=False)
-    except ffmpeg.Error as e:
-        print(e)  # To print the error details
+            merged_audio, merged_audio_path, **{"b:a": "192k"}
+        ).overwrite_output().run(quiet=True)
+
+        return [merged_audio, merged_audio_path]  # Return merged audio
+
+def generate_video(
+    video,
+    audio,
+    length,
+    path,
+    id,
+):
     
-    console.log(f"[bold green] Video Will Be: {length} Seconds Long")
+    print_step("Generating the final video 🎥")
 
-    screenshot_width = int((W * 45) // 100)
-    audio = ffmpeg.input(f"assets/temp/{id}/audio.mp3")
-    final_audio = merge_background_audio(audio, id)
-
-    defaultPath = f"results/{id}"
-
-    if not exists(defaultPath):
-        print_substep("The 'results' folder could not be found so it was automatically created.")
-        os.makedirs(defaultPath)
-
-
+    print(path, id)
     pbar = tqdm(total=100, desc="Progress: ", bar_format="{l_bar}{bar}", unit=" %")
 
     def on_update_example(progress) -> None:
@@ -159,14 +137,10 @@ def make_final_video(
         pbar.update(status - old_percentage)
 
     with ProgressFfmpeg(length, on_update_example) as progress:
-        path = defaultPath + f"/final_video"
-        path = (
-            path[:251] + ".mp4"
-        )  # Prevent a error by limiting the path length, do not change this.
         try:
             ffmpeg.output(
-                background_clip,
-                final_audio,
+                audio,
+                video,
                 path,
                 f="mp4",
                 **{
@@ -181,6 +155,7 @@ def make_final_video(
                 capture_stdout=False,
                 capture_stderr=False,
             )
+            ffmpeg.probe(path, cmd='ffprobe')
         except ffmpeg.Error as e:
             print(e.stderr.decode("utf8"))
             exit(1)
@@ -189,8 +164,63 @@ def make_final_video(
     pbar.update(100 - old_percentage)
 
     pbar.close()
-    # save_data(subreddit, filename + ".mp4", title, idx, background_config["video"][2])
+
     print_step("Removing temporary files 🗑")
-    #cleanups = cleanup(id)
-    # print_substep(f"Removed {cleanups} temporary files 🗑")
-    print_step("Done! 🎉 The video is in the results folder 📁")
+    cleanups = cleanup(id)
+    print_substep(f"Removed {cleanups} temporary files 🗑")
+
+
+def make_final_video(
+    obj,   
+    number_of_clips: int,
+    length: int,
+    path: str,
+):
+    # settings values
+    W: Final[int] = int(settings.config["settings"]["resolution_w"])
+    H: Final[int] = int(settings.config["settings"]["resolution_h"])
+    
+    id = obj["id"]
+
+    print_step("Creating the final video 🎥")
+    background_clip = ffmpeg.input(prepare_background(id, W=W, H=H))
+
+    audio_clips = list()
+    audio_clips = [
+        ffmpeg.input(f"assets/temp/{id}/mp3/output_chunk_{i+1}.mp3")
+        for i in track(range(number_of_clips), "Collecting the audio files...")
+    ]
+    audio_concat = ffmpeg.concat(*audio_clips, a=1, v=0)
+    
+    ffmpeg.output(
+        audio_concat, f"assets/temp/{id}/audio.mp3", **{"b:a": "192k"}
+    ).overwrite_output().run(quiet=True)
+    
+    console.log(f"[bold green] Video Will Be: {length} Seconds Long")
+
+    audio = ffmpeg.input(f"assets/temp/{id}/audio.mp3")
+    [final_audio, final_audio_path] = merge_background_audio(audio, id)
+
+    video_path = path + f"/final_video"
+    video_path = (
+        video_path[:251] + ".mp4"
+    )  # Prevent a error by limiting the path length, do not change this.
+    print(final_audio_path)
+
+    audio_thread = ThreadWithReturnValue(target=transcribe_audio, args=(f"assets/temp/{id}/audio.mp3",))
+    video_thread = ThreadWithReturnValue(target=generate_video, args=(background_clip, final_audio, length, video_path, id))
+    
+    audio_thread.start()
+    video_thread.start()
+
+    word_timings = audio_thread.join()
+    video_thread.join()
+
+    captions_video_path = path + f"/final_video_captions"
+    captions_video_path = (
+        captions_video_path[:251] + ".mp4"
+    )  # Prevent a error by limiting the path length, do not change this.
+    
+    generate_captions(word_timings, video_path, captions_video_path)
+
+    return [path, final_audio_path]

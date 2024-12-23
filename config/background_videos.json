@@ -59,5 +59,107 @@
         "steep.mp4",
         "joel",
         "center"
-    ]
+    ],
+    "pikachu": [
+        "https://www.youtube.com/watch?v=69C77_ek6Hw",
+        "pikachu.mp4",
+        "joel",
+        "center"
+    ],
+    "darling": [
+        "https://www.youtube.com/watch?v=6V_0lKxZ5AQ",
+        "darling.mp4",
+        "joel",
+        "center"
+    ],
+    "onepiece": [
+        "https://www.youtube.com/watch?v=bXgE5wX-nFk",
+        "onepiece.mp4",
+        "joel",
+        "center"
+    ],
+    "solo-leveling": [
+        "https://www.youtube.com/watch?v=2n-zBCP1ZH0",
+        "solo-leveling.mp4",
+        "decent",
+        "center"
+    ],
+    "kaiju": [
+        "https://www.youtube.com/watch?v=TRXbzBGDKAE",
+        "kaiju.mp4",
+        "decent",
+        "center"
+    ],
+    "hunter": [
+        "https://www.youtube.com/watch?v=y2d6yZA6TXY",
+        "hunter.mp4",
+        "decent",
+        "center"
+    ],
+    "titan": [
+        "https://www.youtube.com/watch?v=gNwABGACsfY",
+        "titan.mp4",
+        "decent",
+        "center"
+    ],
+    "mha": [
+        "https://www.youtube.com/watch?v=Tpwi__DQKkM",
+        "mha.mp4",
+        "decent",
+        "center"
+    ],
+    "blue-box": [
+        "https://www.youtube.com/watch?v=tctxNGRT6Y8",
+        "blue2.mp4",
+        "kdrama",
+        "center"
+    ],
+    "dn2": [
+        "https://www.youtube.com/watch?v=NlJZ-YgAt-c",
+        "dn2.mp4",
+        "kdrama",
+        "center"
+    ],
+    "bleach": [
+        "https://www.youtube.com/watch?v=Q28teBZmifo",
+        "bleach.mp4",
+        "kdrama",
+        "center"
+    ],
+    "frieren": [
+        "https://www.youtube.com/watch?v=lJ2Ao1suBSw",
+        "frieren.mp4",
+        "kdrama",
+        "center"
+    ],
+    "assasination": [
+        "https://www.youtube.com/watch?v=EbQJWaezoSQ",
+        "assasination.mp4",
+        "kdrama",
+        "center"
+    ],
+    "deku": [
+        "https://www.youtube.com/watch?v=7ez0AjMYvek", 
+        "deku.mp4",
+        "kdrama",
+        "center"
+    ],
+    "fma": [
+        "https://www.youtube.com/watch?v=GrkG_EAzgWU", 
+        "fma.mp4",
+        "kdrama",
+        "center"
+    ],
+    "tokyo": [
+        "https://www.youtube.com/watch?v=ZsQnAuh3tZU", 
+        "tokyo.mp4",
+        "kdrama",
+        "center"
+    ],
+    "danmachi": [
+        "https://www.youtube.com/watch?v=tf3UaamLwSI", 
+        "danmachi.mp4",
+        "kdrama",
+        "center"
+    ]  
 }

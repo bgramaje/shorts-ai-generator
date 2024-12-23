@@ -1,35 +1,31 @@
 #!/usr/bin/env python
-import math
 import sys
-from os import name
 from pathlib import Path
-from subprocess import Popen
-from typing import NoReturn
 import uuid
 import re
-
+import os
 from utils import settings
 
 from utils.console import print_markdown
 from utils.ffmpeg_install import ffmpeg_install
 from voices.voice_generator import save_text_to_mp3
-from video.openai import ask_chatgpt
+from video.video_creator import make_final_video
+
+from video.openai import (
+    chatgpt_video_content,
+    load_openai_response
+)
+
 from video.video_background import (
     chop_background,
     download_background_audio,
     download_background_video,
     get_background_config,
 )
+
 from utils.console import (
-    print_step,
     print_substep
 )
-from video.video_creator import make_final_video
-from os.path import exists  # Needs to be imported specifically
-import os
-
-from moviepy.config import change_settings
-change_settings({"IMAGEMAGICK_BINARY": r"C:\\Program Files\\ImageMagick-7.1.1-Q16-HDRI\\magick.exe"})
 
 __VERSION__ = "3.3.0"
 
@@ -47,26 +43,33 @@ if __name__ == "__main__":
     config = settings.check_toml(
         f"{directory}/utils/.config.template.toml", f"{directory}/config.toml"
     )
-    
-    # response = """
-    #     Did you know that "Attack on Titan" almost didn't happen? The creator, Hajime Isayama, considered shelving the project after the initial pitch was rejected. However, he fine-tuned his concept and it became a massive global sensation. Here's a fun fact: the famous ODM gear actually draws inspiration from ancient martial arts. The fluidity and speed are reminiscent of ninjutsu! And speaking of characters, did you notice how Eren was nearly written as a Titan from the very first chapter? That plot twist was supposed to be revealed much later. There's also an intriguing tidbit about the Titans themselves: their erratic movement was inspired by horror films, aiming to create an unsettling sense of chaos. Plus, the walls' names - Maria
-    # """
+
+    response = None
+
     response = """
-        ¿Sabías que un solo titán promedio es lo suficientemente fuerte como para arrasar con una ciudad entera? ¡Es fascinante! "Attack on Titan" no solo es conocido por sus impresionantes batallas, sino también por su profunda historia y giros emocionales. Uno de 
-        los hechos más curiosos es que los titanes fueron inspirados por la sensación de vulnerabilidad e impotencia del creador Hajime Isayama. Además, todos los titanes, sin excepción, tienen una debilidad crucial: un punto detrás de su cuello que, si es cortado, 
-        los acabará instantáneamente. Y hablando de sorpresas, ¿sabías que Eren Jaeger se transforma en un titán en el quinto episodio del
-    """
-    # response = ask_chatgpt("Un short de youtube sobre curiosidades de ataque a los titanes")
-    # print(response)
+    {
+        "title": "Un maestro alienígena que enseña a matarlo! 👽", 
+        "description": "",
+        "tags": "", 
+        "content": "¿Sabías que Bell Cranel, el protagonista de Danmachi, tiene un pasado que lo conecta directamente con el poderoso dios Zeus? ⚡ Aunque no se menciona mucho en el anime, Bell fue criado por Zeus antes de unirse a la Familia Hestia. Esta relación explica su fuerte determinación y su ambición de convertirse en un héroe legendario. ¡Incluso su nombre, Bell, podría ser un guiño al 'relámpago' de Zeus! 🌩️ Un detalle que añade un toque épico a su historia y lo conecta con las leyendas mitológicas."
+    }"""
+    if response is None:
+        response = chatgpt_video_content("Un short de Youtube sobre One Piece, es difícil no emocionarse con la despedida del Going Merry. Pero, ¿sabías que Eiichiro Oda dijo que esta escena fue una de las más difíciles de escribir para él? El vínculo entre los personajes y su barco era tan fuerte que sentía como si estuviera despidiendo a un amigo. ¿Te hizo llorar esta escena también?")
+        print(response)
+    data = load_openai_response(response)
+
+    if data is None:
+        print_substep("Could not decode OpenAI response into a json dictionary. Please try again later.")
+        sys.exit()
 
     config is False and sys.exit()
     content = {
         "id": re.sub(r"[^\w\s-]", "", str(uuid.uuid4())),
-        "title": str(uuid.uuid4()),
-        "text": response
+        "title": data['title'],
+        "text": data['content']
     }
     
-    [total_duration, number_of_clips] = save_text_to_mp3(content)
+    [total_duration, number_of_clips, text_chunks] = save_text_to_mp3(content)
 
     bg_config = {
         "video": get_background_config("video"),
@@ -75,9 +78,9 @@ if __name__ == "__main__":
 
     defaultPath = f"results/{content['id']}"
 
-    if not exists(defaultPath):
+    if not os.path.exists(defaultPath):
         print_substep("The 'results' folder could not be found so it was automatically created.")
-        os.makedirs(defaultPath)
+        os.makedirs(defaultPath, exist_ok=True)
 
     download_background_video(bg_config["video"])
     download_background_audio(bg_config["audio"])
@@ -88,5 +91,5 @@ if __name__ == "__main__":
         obj=content, 
         length=total_duration, 
         number_of_clips=number_of_clips,
-        path=defaultPath
+        path=defaultPath,
     )

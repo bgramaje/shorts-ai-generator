@@ -3,6 +3,7 @@ import multiprocessing
 import threading
 import tempfile
 import time
+from utils.tools import chain
 from tqdm import tqdm
 
 from typing import Dict, Final, Tuple
@@ -123,12 +124,8 @@ def generate_video(
     audio,
     length,
     path,
-    id,
 ):
-    
     print_step("Generating the final video 🎥")
-
-    print(path, id)
     pbar = tqdm(total=100, desc="Progress: ", bar_format="{l_bar}{bar}", unit=" %")
 
     def on_update_example(progress) -> None:
@@ -165,10 +162,6 @@ def generate_video(
 
     pbar.close()
 
-    print_step("Removing temporary files 🗑")
-    cleanups = cleanup(id)
-    print_substep(f"Removed {cleanups} temporary files 🗑")
-
 
 def make_final_video(
     obj,   
@@ -204,23 +197,27 @@ def make_final_video(
     video_path = path + f"/final_video"
     video_path = (
         video_path[:251] + ".mp4"
-    )  # Prevent a error by limiting the path length, do not change this.
-    print(final_audio_path)
+    )
 
-    audio_thread = ThreadWithReturnValue(target=transcribe_audio, args=(f"assets/temp/{id}/audio.mp3",))
-    video_thread = ThreadWithReturnValue(target=generate_video, args=(background_clip, final_audio, length, video_path, id))
-    
+    audio_thread = ThreadWithReturnValue(target=transcribe_audio, args=(f"assets/temp/{id}/audio.mp3", obj['text'], ))
+    video_thread = ThreadWithReturnValue(target=generate_video, args=(background_clip, final_audio, length, video_path))
+
     audio_thread.start()
     video_thread.start()
 
     word_timings = audio_thread.join()
-    video_thread.join()
+    _ = video_thread.join()
 
     captions_video_path = path + f"/final_video_captions"
     captions_video_path = (
         captions_video_path[:251] + ".mp4"
-    )  # Prevent a error by limiting the path length, do not change this.
+    )
     
-    generate_captions(word_timings, video_path, captions_video_path)
+    if(word_timings is not None):
+        generate_captions(word_timings, video_path, captions_video_path)
 
+    print_step("Removing temporary files 🗑")
+    cleanups = cleanup(f"assets/temp/{id}")
+    print_substep(f"Removed {cleanups} temporary files 🗑")
+    
     return [path, final_audio_path]

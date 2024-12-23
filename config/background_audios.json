@@ -14,5 +14,25 @@
         "https://www.youtube.com/watch?v=EZE8JagnBI8",
         "chill-summer.mp3",
         "Mellow Vibes Radio"
+    ],
+    "epic":[
+        "https://www.youtube.com/watch?v=the87h50RLE",
+        "epic.mp3",
+        "oroclick"
+    ],
+    "love": [
+        "https://www.youtube.com/watch?v=xpyAbzlu8jE",
+        "love.mp3",
+        "musica-libre"
+    ],
+    "suspense": [
+        "https://www.youtube.com/watch?v=X5pJNnk1-N0",
+        "suspense.mp3",
+        "musica-libre"
+    ],
+    "anime": [
+        "https://www.youtube.com/watch?v=7Ebf9PiGZFo",
+        "anime.mp3",
+        "musica-libre"
     ]
 }
